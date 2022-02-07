@@ -1,19 +1,25 @@
-/****** Object:  StoredProcedure [sp_data].[populate_dim_cover_type]    Script Date: 16/09/2021 11:04:49 am ******/
+/****** Object:  StoredProcedure [sp_data].[populate_dim_cover_type]    Script Date: 29/09/2021 7:58:11 am ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
+IF EXISTS (select * from sys.sysobjects where name = 'populate_dim_cover_type')
+	DROP PROCEDURE [sp_data].[populate_dim_cover_type]
+GO
+
 CREATE PROCEDURE [sp_data].[populate_dim_cover_type]
 AS
 BEGIN
+declare @end_date datetime ;
+SET @end_date = (Select max(date_value) from data.dim_date);
 	SET NOCOUNT ON;
 	SET IDENTITY_INSERT data.[dim_cover_type] ON
 	INSERT INTO data.[dim_cover_type]
 		([cover_type_key],[cover_type_id],[cover_description],[cover_active_flag],[product_id],[product_code],[dealer_group_id],[dealer_id],[original_cover_type_id],[vehicle_category_id]
       ,[record_start_datetime],[record_end_datetime],[record_current_flag])
-	SELECT -1,0,'N/A',1,0,'N/A',0,0,0,0,'19000101','20491231',1
+	SELECT -1,0,'N/A',1,0,'N/A',0,0,0,0,'19000101',@end_date,1
 	WHERE NOT EXISTS
 	(SELECT cover_type_key FROM  data.[dim_cover_type] WHERE cover_type_key = -1)
 SET IDENTITY_INSERT  data.[dim_cover_type] OFF
@@ -36,7 +42,7 @@ select [id],[title],[is_enabled],[insurance_product_id],null as dealer_group_id,
        null as min_kms , null as max_kms, null as [roadside_assist],null as [roadside_assist_max_term],null as [service_interval_petrol],null as[service_km_petrol],
 	   null as [service_interval_diesel],null as [service_km_diesel],null as [service_interval_hybrid],null as [service_km_hybrid],null as [service_interval_electric],
 	   null as[service_km_electric],null as [premium_funded],null as [is_flexible_term], null as [is_special_extended], null as [gwp_account_code], null as [cancellation_account_code],
-	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess], null as[other_details],[please_note],[financial_rating],[acknowledgments],
+	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess], [other_details],[please_note],[financial_rating],[acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
 	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],[created_timestamp] as create_date,[enabled_timestamp],created_by
       from [ext_piclos].[gap_cover_type]
@@ -65,7 +71,7 @@ select [id],[title],[is_enabled],18 as [insurance_product_id],null as dealer_gro
 	   null as[service_km_electric],null as [premium_funded],null as [is_flexible_term], null as [is_special_extended],  [gwp_account_code], [cancellation_account_code],
 	   [claims_account_code], [has_road_side_assist], [term],[excess], [other_details],null as[please_note],null as[financial_rating],null as[acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
-	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],null as create_date,
+	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],'2012-01-03 00:00:00' as create_date,
 	   null as [enabled_timestamp],null as created_by
         from [ext_piclos].[posm_cover_type]
 union
@@ -98,6 +104,7 @@ WHEN NOT MATCHED BY TARGET THEN
      ,[cover_created_date]
 	 ,[cover_enabled_date]
 	 ,[created_by_user_id]
+	 ,[record_end_datetime]
 		)
 	VALUES
 		(
@@ -109,13 +116,14 @@ WHEN NOT MATCHED BY TARGET THEN
 	   [contact_details],[use_wholesale_premium],[rate_percentage_12],[rate_percentage_18],[rate_percentage_24],[rate_percentage_36],
 	   [rate_percentage_48],[rate_percentage_60],[rate_double],[rate_retail_commission]
 	  , create_date
-	  ,replace([enabled_timestamp],'0001-01-01 00:00:00.000',null) 
+	  ,case when [enabled_timestamp] = '0001-01-01 00:00:00.000' then null else [enabled_timestamp] end 
 	  ,[created_by]
+	  ,@end_date
 			
 			
 		)
 
-WHEN MATCHED and( data.[dim_cover_type].cover_type_id <> cover_type.[id] OR
+WHEN MATCHED and( 
 data.[dim_cover_type].cover_description <> cover_type.[title] OR
 isnull(data.[dim_cover_type].cover_active_flag,-999) <> isnull(cover_type.[is_enabled],-999) OR
 isnull(data.[dim_cover_type].dealer_group_id,-999) <> isnull(cover_type.dealer_group_id,-999) OR
@@ -159,16 +167,20 @@ isnull(data.[dim_cover_type].rate_48_months_percentage,-999) <> isnull(cover_typ
 
 isnull(data.[dim_cover_type].rate_60_months_percentage,-999) <> isnull(cover_type.[rate_percentage_60],-999) OR
 isnull(data.[dim_cover_type].rate_double_cover_percentage,-999) <> isnull(cover_type.[rate_double],-999) OR
-isnull(data.[dim_cover_type].rate_retail_commission_percentage,-999) <> isnull(cover_type.[rate_retail_commission],-999) 
+isnull(data.[dim_cover_type].rate_retail_commission_percentage,-999) <> isnull(cover_type.[rate_retail_commission],-999) OR
+isnull(data.[dim_cover_type].[cover_enabled_date],'19000101') <> isnull(cover_type.[enabled_timestamp],'19000101') 
 )
 
 THEN 
-UPDATE SET data.[dim_cover_type].[record_end_datetime] = getdate(),
+UPDATE SET data.[dim_cover_type].[record_end_datetime] = getdate() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time',
 data.[dim_cover_type].[record_current_flag] = 0,
-data.[dim_cover_type].last_updated = getdate()
+data.[dim_cover_type].last_updated = getdate() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time'
 
 
-WHEN NOT MATCHED BY SOURCE AND data.[dim_cover_type].cover_type_key <> -1 and [record_current_flag] = 1 THEN UPDATE SET data.[dim_cover_type].is_deleted = 1;
+WHEN NOT MATCHED BY SOURCE AND data.[dim_cover_type].cover_type_key <> -1 and [record_current_flag] = 1 THEN 
+UPDATE SET data.[dim_cover_type].is_deleted = 1,
+data.[dim_cover_type].[record_end_datetime] = getdate() AT TIME ZONE 'UTC' AT TIME ZONE 'New Zealand Standard Time',
+data.[dim_cover_type].[record_current_flag] = 0;
 
 INSERT into data.dim_cover_type 
 		(
@@ -178,10 +190,10 @@ INSERT into data.dim_cover_type
       ,[electric_vehicle_service_kms],[premium_funded_flag],[flexible_term_flag],[special_extended_flag],[gwp_account_number],[cancellation_account_number],[claims_account_number],[posm_roadside_assit_flag]
       ,[posm_term_in_month],[posm_excess_amount],[other_details],[additional_notes],[financial_rating_notes],[acknowledgment_notes],[contact_details],[use_wholesale_premium_flag],[rate_12_months_percentage]
       ,[rate_18_months_percentage],[rate_24_months_percentage],[rate_36_months_percentage],[rate_48_months_percentage],[rate_60_months_percentage],[rate_double_cover_percentage],[rate_retail_commission_percentage]
-      ,[cover_created_date],[cover_enabled_date],[created_by_user_id],product_code
+      ,[cover_created_date],[cover_enabled_date],[created_by_user_id],product_code,[record_end_datetime]
 		)
 
-Select cover_type.*,p.[product_type] from 	(
+Select cover_type.*,p.[product_type],@end_date from 	(
 		
 		select  [id],[title],[is_enabled],[insurance_product_id],null as dealer_group_id,null as dealer_id,null as [original_cover_type_id],null as [vehicle_category],null as max_age,
        null as min_kms , null as max_kms, null as [roadside_assist],null as [roadside_assist_max_term],null as [service_interval_petrol],null as[service_km_petrol],
@@ -189,17 +201,17 @@ Select cover_type.*,p.[product_type] from 	(
 	   null as[service_km_electric],null as [premium_funded],null as [is_flexible_term], null as [is_special_extended], null as [gwp_account_code], null as [cancellation_account_code],
 	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess], [other_details],[please_note],[financial_rating],[acknowledgments],
 	   [contact_details],[use_wholesale_premium],[rate_percentage_12],[rate_percentage_18],[rate_percentage_24],[rate_percentage_36],[rate_percentage_48],[rate_percentage_60],
-	   [rate_double],[rate_retail_commission],[enable_timestamp] as create_date,replace([enabled_timestamp],'0001-01-01 00:00:00.000',null)as [enabled_timestamp] ,null as created_by
+	   [rate_double],[rate_retail_commission],[enable_timestamp] as create_date,case when [enabled_timestamp] = '0001-01-01 00:00:00.000' then null else [enabled_timestamp] end as [enabled_timestamp] ,null as created_by
         from [ext_piclos].[cci_cover_type]
 union 
 select [id],[title],[is_enabled],[insurance_product_id],null as dealer_group_id,null as dealer_id,null as [original_cover_type_id],null as [vehicle_category],null as max_age,
        null as min_kms , null as max_kms, null as [roadside_assist],null as [roadside_assist_max_term],null as [service_interval_petrol],null as[service_km_petrol],
 	   null as [service_interval_diesel],null as [service_km_diesel],null as [service_interval_hybrid],null as [service_km_hybrid],null as [service_interval_electric],
 	   null as[service_km_electric],null as [premium_funded],null as [is_flexible_term], null as [is_special_extended], null as [gwp_account_code], null as [cancellation_account_code],
-	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess], null as[other_details],[please_note],[financial_rating],[acknowledgments],
+	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess],[other_details],[please_note],[financial_rating],[acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
 	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],[created_timestamp] as create_date
-	   ,replace([enabled_timestamp],'0001-01-01 00:00:00.000',null) as [enabled_timestamp],created_by
+	   ,[enabled_timestamp],created_by
       from [ext_piclos].[gap_cover_type]
 union 
 select [id],[title],[is_enabled],[insurance_product_id],null as dealer_group_id,null as dealer_id,null as [original_cover_type_id],null as [vehicle_category],null as max_age,
@@ -218,7 +230,8 @@ select [id],[title],[is_enabled],[insurance_product_id],[dealer_group_id],[deale
 	   null as [term],null as [excess], null as[other_details],null as [please_note],null as [financial_rating],null as [acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
 	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],
-	  [created_timestamp] as create_date,replace([enabled_timestamp],'0001-01-01 00:00:00.000',null) as [enabled_timestamp],[created_by] from [ext_piclos].[mbi_cover_type]
+	  [created_timestamp] as create_date,case when [enabled_timestamp] = '0001-01-01 00:00:00.000' then null else [enabled_timestamp] end as [enabled_timestamp],[created_by] 
+	  from [ext_piclos].[mbi_cover_type]
 union
 select [id],[title],[is_enabled],18 as [insurance_product_id],null as dealer_group_id,null as dealer_id,null as [original_cover_type_id],null as [vehicle_category],null as max_age,
        null as min_kms , null as max_kms, null as [roadside_assist],null as [roadside_assist_max_term],null as [service_interval_petrol],null as[service_km_petrol],
@@ -226,7 +239,7 @@ select [id],[title],[is_enabled],18 as [insurance_product_id],null as dealer_gro
 	   null as[service_km_electric],null as [premium_funded],null as [is_flexible_term], null as [is_special_extended],  [gwp_account_code], [cancellation_account_code],
 	   [claims_account_code], [has_road_side_assist], [term],[excess], [other_details],null as[please_note],null as[financial_rating],null as[acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
-	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],null as create_date,
+	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],'2012-01-03 00:00:00' as create_date,
 	   null as [enabled_timestamp],null as created_by
         from [ext_piclos].[posm_cover_type]
 union
@@ -237,13 +250,19 @@ select [id],[title],[is_enabled],[insurance_product_id],null as dealer_group_id,
 	   null as [claims_account_code], null as [has_road_side_assist], null as [term],null as [excess],null as [other_details],null as [please_note],null as[financial_rating],null as[acknowledgments],
 	   null as[contact_details],null as[use_wholesale_premium],null as[rate_percentage_12],null as[rate_percentage_18],null as[rate_percentage_24],null as[rate_percentage_36],
 	   null as[rate_percentage_48],null as[rate_percentage_60],null as[rate_double],null as[rate_retail_commission],
-	   [created_timestamp] as create_date,replace([enabled_timestamp],'0001-01-01 00:00:00.000',null) as [enabled_timestamp],[created_by] from [ext_piclos].[tar_cover_type]			
+	   [created_timestamp] as create_date,case when [enabled_timestamp] = '0001-01-01 00:00:00.000' then null else [enabled_timestamp] end as [enabled_timestamp],[created_by]
+	   from [ext_piclos].[tar_cover_type]			
 		
 	) cover_type 
 	join ext_piclos.insurance_product P
 	on p.id = cover_type.[insurance_product_id]
-	where cover_type.id not in (select cover_type_id from data.dim_cover_type where [record_current_flag] = 1  )
+	left join data.dim_cover_type c
+	on c.cover_type_id = cover_type.id
+	and c.product_id =  cover_type.[insurance_product_id] 
+	and [record_current_flag] = 1  and is_deleted = 0
+	where c.cover_type_id is null or c.product_id is null 
 
 End
 GO
+
 
