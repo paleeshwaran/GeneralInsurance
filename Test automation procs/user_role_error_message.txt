@@ -1,0 +1,80 @@
+update piclos.dealer set city = a.city + '1' from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+update piclos.dealer set company_name= a.company_name + '1' from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+update piclos.dealer set suburb = a.suburb + '1' from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+update piclos.role set level = a.level + 1  from piclos.[role] a join piclos.user_role b on b.role_key = a.[key] join piclos.[user] c on c.[id] = b.[user_id] where user_id in (select max(id) from piclos.[user])
+update piclos.role set title = a.title + '1' from piclos.[role] a join piclos.user_role b on b.role_key = a.[key] join piclos.[user] c on c.[id] = b.[user_id] where user_id in (select max(id) from piclos.[user])
+update piclos.[user] set phone = phone + '1' from piclos.[user] where id in (select max(id) from piclos.[user] )
+select @vsourcecolumnvalue = city from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+Msg 208, Level 16, State 1, Line 230
+Invalid object name 'piclos.dealer'.
+select @vDestinationPrevColumnValue = dealer_city from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_city from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_city from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vsourcecolumnvalue = company_name from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+Msg 208, Level 16, State 1, Line 230
+Invalid object name 'piclos.dealer'.
+select @vDestinationPrevColumnValue = dealer_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vsourcecolumnvalue = suburb from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+Msg 208, Level 16, State 1, Line 230
+Invalid object name 'piclos.dealer'.
+select @vDestinationPrevColumnValue = dealer_suburb_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_suburb_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = dealer_suburb_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vsourcecolumnvalue = level from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+Msg 208, Level 16, State 1, Line 230
+Invalid object name 'piclos.dealer'.
+select @vDestinationPrevColumnValue = role_level from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = role_level from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = role_level from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vsourcecolumnvalue = title from (select id, d.company_name, d.suburb, d.city, du.[user_id] from piclos.dealer d join piclos.dealer_user du on d.id = du.dealer_id ) a join piclos.[user] c on a.[user_id] = c.id  where [user_id] in (select max(id) from piclos.[user])
+Msg 208, Level 16, State 1, Line 230
+Invalid object name 'piclos.dealer'.
+select @vDestinationPrevColumnValue = role_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = role_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = role_name from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vsourcecolumnvalue = phone from ext_piclos.[user] where id in (select max(id) from ext_piclos.[user])
+select @vDestinationPrevColumnValue = user_phone_number from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = user_phone_number from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+select @vDestinationPrevColumnValue = user_phone_number from data.dim_user_role where [user_id] = 4184 and record_end_datetime between '2021-11-18 08:32:17.517' and '2021-11-18 08:32:17.517'
+
+(1 row affected)
+
+(18 rows affected)
+
+Completion time: 2021-11-18T08:32:17.6008272+13:00
